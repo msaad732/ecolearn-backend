@@ -1,9 +1,3 @@
-Got it ✅ — your README should match **your actual project** (FastAPI backend + static PWA frontend with quiz, chat, carbon, recycle, share, leaderboard).
-
-Here’s a cleaned-up and updated version of your README:
-
----
-
 # EcoLearn AI 🌍
 
 An AI-powered educational platform for kids and students to learn about **sustainability, recycling, and climate change** in a fun and interactive way.
