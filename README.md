@@ -1,6 +1,6 @@
 # EcoLearn AI 🌍
 
-An AI-powered educational platform for kids and students to learn about **sustainability, recycling, and climate change** in a fun and interactive way.
+An AI-powered educational platform for kids and students to learn about **sustainability, recycling, and climate change** in a fun and an interactive way.
 Built with a **FastAPI backend**, responsive **PWA frontend**, and features like quizzes, chat, and eco-friendly tips.
 
 ---
