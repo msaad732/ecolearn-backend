@@ -37,6 +37,10 @@ app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
 GROK_API_KEY = os.getenv("GROK_API_KEY")
 GROK_BASE_URL = "https://api.groq.com/openai/v1"
 
+if not GROK_API_KEY:
+    print("⚠️ WARNING: GROK_API_KEY environment variable not set!")
+    print("Please set GROK_API_KEY in your Azure environment variables.")
+
 
 # In-memory conversation store
 conversations = {}
@@ -86,6 +90,9 @@ def validate_response(response: str, language: str, age_level: str) -> str:
     return response
 
 def grok_chat_completion(message: str, language: str, age_level: str, user_id: str = "user-1") -> str:
+    if not GROK_API_KEY:
+        return "⚠️ Error: API key not configured. Please contact the administrator."
+    
     if user_id not in conversations:
         conversations[user_id] = [{"role": "system", "content": f"Respond in {language}, for age level {age_level}."}]
     conversations[user_id].append({"role": "user", "content": message})
@@ -106,6 +113,10 @@ def grok_chat_completion(message: str, language: str, age_level: str, user_id: s
             validated_reply = validate_response(reply, language, age_level)
             conversations[user_id].append({"role": "assistant", "content": validated_reply})
             return validated_reply
+        elif response.status_code == 401:
+            return "⚠️ Error: Invalid API key. Please contact the administrator."
+        elif response.status_code == 429:
+            return "⚠️ Error: Rate limit exceeded. Please try again later."
         else:
             return f"⚠️ API Error {response.status_code}: {response.text}"
     except Exception as e:
@@ -115,6 +126,9 @@ def grok_tts(text: str, language: str) -> str:
     return None  # placeholder
 
 def grok_stt_from_audiobytes(audio_bytes: bytes, language: str) -> str:
+    if not GROK_API_KEY:
+        return "⚠️ Error: API key not configured. Please contact the administrator."
+    
     try:
         temp_filename = f"temp_{uuid.uuid4().hex}.webm"
         temp_path = os.path.join(MEDIA_DIR, temp_filename)
@@ -130,6 +144,10 @@ def grok_stt_from_audiobytes(audio_bytes: bytes, language: str) -> str:
         os.remove(temp_path)
         if response.status_code == 200:
             return response.json().get('text', "Sorry, I couldn't understand the audio.")
+        elif response.status_code == 401:
+            return "⚠️ Error: Invalid API key. Please contact the administrator."
+        elif response.status_code == 429:
+            return "⚠️ Error: Rate limit exceeded. Please try again later."
         else:
             return "Sorry, I couldn't understand the audio."
     except Exception:
@@ -322,6 +340,41 @@ def get_leaderboard():
 # Include the quiz router
 app.include_router(router, prefix="/quiz")
 
+# --- API Endpoints for frontend ---
+@app.get("/api/health")
+def api_health():
+    return {"status": "healthy", "msg": "EcoLearn backend is running with Groq Whisper + LLaMA-3 + DB leaderboard!"}
+
+@app.get("/api/courses")
+def api_courses():
+    courses = [
+        {
+            "id": 1,
+            "title": "Green Technology",
+            "description": "Learn about renewable energy and sustainable technology solutions",
+            "duration": "8 weeks",
+            "level": "Intermediate",
+            "instructor": "Dr. Sarah Green"
+        },
+        {
+            "id": 2,
+            "title": "Environmental Science",
+            "description": "Understand climate change and environmental conservation",
+            "duration": "10 weeks",
+            "level": "Beginner",
+            "instructor": "Prof. Michael Eco"
+        },
+        {
+            "id": 3,
+            "title": "Sustainable Living",
+            "description": "Adopt eco-friendly practices in your daily life",
+            "duration": "6 weeks",
+            "level": "Beginner",
+            "instructor": "Lisa Sustainable"
+        }
+    ]
+    return {"courses": courses}
+
 # --- Share: simple image upload to serve a public URL ---
 @app.post("/share/upload")
 async def share_upload(request: Request, image: UploadFile = File(...)):
@@ -345,4 +398,4 @@ async def share_upload(request: Request, image: UploadFile = File(...)):
 # --- Run ---
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
