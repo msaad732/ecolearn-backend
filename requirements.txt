@@ -1,8 +1,8 @@
 fastapi
-uvicorn[standard]
-gunicorn
-requests
+uvicorn
 sqlalchemy
 python-dotenv
+requests
 pydantic
+aiofiles
 python-multipart
