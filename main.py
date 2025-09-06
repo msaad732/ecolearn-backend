@@ -87,7 +87,27 @@ def validate_response(response: str, language: str, age_level: str) -> str:
 
 def grok_chat_completion(message: str, language: str, age_level: str, user_id: str = "user-1") -> str:
     if user_id not in conversations:
-        conversations[user_id] = [{"role": "system", "content": f"Respond in {language}, for age level {age_level}."}]
+        # Enhanced system prompt for better language and age support
+        language_instructions = {
+            "ur": "آپ کو اردو میں جواب دینا ہے۔",
+            "en": "You should respond in English.",
+            "es": "Debes responder en español.",
+            "ar": "يجب أن تجيب باللغة العربية."
+        }
+        
+        age_instructions = {
+            "10": "Use simple words and short sentences. Be very friendly and encouraging.",
+            "12": "Use clear explanations with examples. Be educational but fun.",
+            "adult": "Provide detailed, comprehensive information with technical terms when appropriate."
+        }
+        
+        system_prompt = f"""You are an environmental education assistant. 
+        {language_instructions.get(language, "Respond in the user's language.")}
+        {age_instructions.get(age_level, "Provide age-appropriate content.")}
+        Focus on climate change, renewable energy, environmental conservation, and sustainability.
+        Be helpful, encouraging, and educational."""
+        
+        conversations[user_id] = [{"role": "system", "content": system_prompt}]
     conversations[user_id].append({"role": "user", "content": message})
 
     try:
