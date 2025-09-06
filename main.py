@@ -115,7 +115,7 @@ def grok_chat_completion(message: str, language: str, age_level: str, user_id: s
         payload = {
             "model": "llama-3.3-70b-versatile",
             "messages": conversations[user_id],
-            "max_tokens": 1500,
+            "max_tokens": 150,
             "temperature": 0.5,
         }
         response = requests.post(f"{GROK_BASE_URL}/chat/completions", headers=headers, json=payload)
